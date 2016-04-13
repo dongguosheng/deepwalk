@@ -13,7 +13,7 @@
 #include <cstring>
 
 namespace deepwalk {
-    const static int THREAD_NUM = omp_get_num_threads();
+    const static int THREAD_NUM = omp_get_max_threads();
     template<typename T = unsigned int>
     struct Vertex {
         T id;
