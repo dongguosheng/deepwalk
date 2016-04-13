@@ -1,6 +1,8 @@
 #include "DeepWalk.h"
 #include <iostream>
 #include <cstring>
+#include <sys/time.h>
+#include <cstdio>
 
 int main(int argc, const char *argv[])
 {
@@ -16,11 +18,14 @@ int main(int argc, const char *argv[])
     int start_idx = atoi(argv[3]);
 
     Graph<> g(filename, n_vertex, start_idx);
-    std::vector<Vertex<unsigned int>*> data = g.GetData();
+    // std::vector<Vertex<unsigned int>*> data = g.GetData();
     int n_iter = atoi(argv[4]);
     int n_step = atoi(argv[5]);
+    struct timeval st; gettimeofday( &st, NULL );
     g.GenRandomWalks(n_iter, n_step);
-    
+    struct timeval et; gettimeofday( &et, NULL );
+    printf("timeval: %ld ms\n", (et.tv_sec - st.tv_sec) * 1000 + (et.tv_usec - st.tv_usec)/1000);
+
     const char *walks_file = argv[6];
     g.SaveTxt(walks_file);
     
