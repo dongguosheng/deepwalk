@@ -75,6 +75,7 @@ namespace deepwalk {
                 }
             }
             n_edge /= 2;
+            fin.close();
             std::cout << "Read adjlist complete. Total " << data.size() << " vertex, " << n_edge << " edges." << std::endl;
             return true;
         }
