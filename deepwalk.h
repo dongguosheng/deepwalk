@@ -99,6 +99,7 @@ namespace deepwalk {
                 data[id_right]->adjacent_list.push_back(data[id_left]);
                 n_edge++;
             }
+            fin.close();
             std::cout << "Read edgelist complete. Total " << data.size() << " vertex, " << n_edge << " edges." << std::endl;
             return true;
         }
@@ -145,6 +146,7 @@ namespace deepwalk {
                 for (auto id : path)    fout << id << " ";
                 fout << std::endl;
             }
+            fout.close();
             return true;
         }
         inline bool SaveBinary(const char *filename) {
@@ -156,6 +158,7 @@ namespace deepwalk {
             for (auto path : paths) {
                 fout.write(reinterpret_cast<const char*>(&path[0]), path.size() * sizeof(T));
             }
+            fout.close();
         }
         inline std::vector<Vertex<T>*> GetData() const {
             return data;
