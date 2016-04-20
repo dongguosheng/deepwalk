@@ -1,4 +1,4 @@
-#include "../DeepWalk.h"
+#include "../deepwalk.h"
 #include <iostream>
 #include <algorithm>
 #include <ctime>

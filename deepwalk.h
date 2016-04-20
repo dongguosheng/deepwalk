@@ -38,6 +38,7 @@ namespace deepwalk {
                 std::cerr << "file format not supported yet." << std::endl;
             }
             if (!rs) std::cerr << "load graph file error." << std::endl;
+            rng.seed(static_cast<int>(time(NULL)));
         }
         virtual ~Graph() {
             for (auto ptr_v : data) {
@@ -121,7 +122,6 @@ namespace deepwalk {
         }
         inline void Walk(const Vertex<T>* ptr_v, int n_step, std::vector<T> &path) {
             path[0] = ptr_v->id;
-            std::mt19937 rng(static_cast<int>(time(NULL)));
             size_t idx;
             int i = 1;
             const Vertex<T>* ptr_now = ptr_v;
@@ -173,6 +173,7 @@ namespace deepwalk {
         std::vector<Vertex<T>*> data;
         unsigned long n_edge;
         std::vector<std::vector<T> > paths;
+        std::mt19937 rng;
 
         Graph(const Graph &other) {}
         Graph& operator=(const Graph &other) {}

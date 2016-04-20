@@ -1,4 +1,4 @@
-#include "DeepWalk.h"
+#include "deepwalk.h"
 #include <iostream>
 #include <cstring>
 #include <sys/time.h>
