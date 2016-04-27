@@ -10,7 +10,7 @@ int main(int argc, const char *argv[])
     using namespace std;
     // args parse
     if (argc < 2) {
-        cout << "./run_Main graph_file idx_list_file num_vertex start_index(0/1) num_iter num_step output_file [idx_list_file]" << endl;
+        cout << "./run_main graph_file idx_list_file num_vertex start_index(0/1) num_iter num_step output_file [idx_list_file]" << endl;
         return -1;
     }
     const char *filename = argv[1];
