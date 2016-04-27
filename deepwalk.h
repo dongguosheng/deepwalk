@@ -11,13 +11,16 @@
 #include <ctime>
 #include <omp.h>
 #include <cstring>
+#include <utility>
+#include <unordered_map>
 
 namespace deepwalk {
     const static int THREAD_NUM = omp_get_max_threads();
     template<typename T = unsigned int>
     struct Vertex {
         T id;
-        std::vector<Vertex*> adjacent_list;
+        std::vector<std::pair<Vertex*, size_t> > adjacent_list;
+        std::vector<size_t> cum_table;
         Vertex(T _id) : id(_id) {}
         Vertex() {}
     };
@@ -39,6 +42,7 @@ namespace deepwalk {
             }
             if (!rs) std::cerr << "load graph file error." << std::endl;
             rng.seed(static_cast<int>(time(NULL)));
+            MakeCumTable();
         }
         virtual ~Graph() {
             for (auto ptr_v : data) {
@@ -68,7 +72,8 @@ namespace deepwalk {
                     else {
                         assert(data[v_id] != NULL);
                         if (data[tmp_id] == NULL)    data[tmp_id] = new Vertex<T>(tmp_id);
-                        data[v_id]->adjacent_list.push_back(data[tmp_id]);
+                        // adj list with weight not supported yet.
+                        data[v_id]->adjacent_list.push_back(std::make_pair(data[tmp_id], 1));
                         n_edge++;
                     }
                     cnt++;
@@ -90,19 +95,52 @@ namespace deepwalk {
                 std::istringstream ss(line);
                 T id_left, id_right;
                 ss >> id_left >> id_right;
+                size_t weight = 1;
+                ss >> weight;
                 id_left -= start_idx;
                 id_right -= start_idx;
                 assert(id_left < data.size());
                 assert(id_right < data.size());    
                 if (data[id_left] == NULL)    data[id_left] = new Vertex<T>(id_left);
                 if (data[id_right] == NULL)    data[id_right] = new Vertex<T>(id_right);
-                data[id_left]->adjacent_list.push_back(data[id_right]);
-                data[id_right]->adjacent_list.push_back(data[id_left]);
+                data[id_left]->adjacent_list.push_back(std::make_pair(data[id_right], weight));
+                data[id_right]->adjacent_list.push_back(std::make_pair(data[id_left], weight));
                 n_edge++;
             }
             fin.close();
             std::cout << "Read edgelist complete. Total " << data.size() << " vertex, " << n_edge << " edges." << std::endl;
             return true;
+        }
+        inline bool LoadVertexName(const char *filename) {
+            std::ifstream fin(filename);
+            if (fin.fail()) {
+                std::cerr << filename << " read error." << std::endl;
+                return false;
+            }
+            std::string line;
+            while (std::getline(fin, line)) {
+                std::istringstream ss(line);
+                std::string vname;
+                T vid;
+                ss >> vname >> vid;
+                vidtoname[vid] = vname;
+            }
+            std::cout << "Load Vertex List Complete." << std::endl;
+            fin.close();
+            return true;
+        }
+        inline void MakeCumTable() {
+            typedef std::pair<Vertex<T>*, size_t> edge_t;
+            for(auto v_ptr : data) {
+                // sort adjlist, higher weight with lower index
+                std::sort((v_ptr->adjacent_list).begin(), (v_ptr->adjacent_list).end(), [](const edge_t left, const edge_t right){ return left.second > right.second; });
+                (v_ptr->cum_table).reserve(v_ptr->adjacent_list.size());
+                size_t weight_sum = 0;
+                for(auto edge : v_ptr->adjacent_list) {
+                    weight_sum += edge.second;
+                    (v_ptr->cum_table).push_back(weight_sum);
+                }
+            }
         }
         inline void GenRandomWalks(int n_iter, int n_step) {
             paths = std::vector<std::vector<T> >(n_iter * data.size(), std::vector<T>());
@@ -122,16 +160,30 @@ namespace deepwalk {
             Walk(ptr_v, n_step, path);
             return path;
         }
+        inline size_t BinarySearch(const std::vector<size_t> &cum_table, size_t rand_num) {
+            size_t idx;
+            size_t left = 0, right = cum_table.size() - 1;
+            while(left <= right) {
+                idx = left + (right - left) / 2;
+                if(idx == 0 || idx == cum_table.size() - 1) break;
+                if (rand_num > cum_table[idx-1] && rand_num <= cum_table[idx])  break;
+                else if (rand_num > cum_table[idx] && rand_num <= cum_table[idx+1]) { idx++; break; }
+                else if (rand_num > cum_table[idx+1]) left = idx + 1;
+                else    right = idx - 1;
+            }
+            return idx;
+        }
         inline void Walk(const Vertex<T>* ptr_v, int n_step, std::vector<T> &path) {
             path[0] = ptr_v->id;
-            size_t idx;
+            size_t rand_num, idx;
             int i = 1;
             const Vertex<T>* ptr_now = ptr_v;
             while (i <= n_step) {
-                assert(ptr_now->adjacent_list.size() > 0);
-                std::uniform_int_distribution<size_t> ud(0, ptr_now->adjacent_list.size() - 1);
-                idx = ud(rng);
-                ptr_now = ptr_now->adjacent_list[idx];
+                assert(ptr_now->adjacent_list.size() > 0 && ptr_now->adjacent_list.size() == ptr_now->cum_table.size());
+                std::uniform_int_distribution<size_t> ud(1, ptr_now->cum_table[(ptr_now->cum_table).size() - 1]);
+                rand_num = ud(rng);
+                idx = BinarySearch(ptr_now->cum_table, rand_num);
+                ptr_now = ptr_now->adjacent_list[idx].first;
                 path[i] = ptr_now->id;
                 i++;
             }
@@ -144,7 +196,10 @@ namespace deepwalk {
                 return false;
             }
             for (auto path : paths) {
-                for (auto id : path)    fout << id << " ";
+                for (auto id : path) {
+                    if (vidtoname.size() > 0)   { assert(vidtoname.find(id) != vidtoname.end()); fout << vidtoname[id] << " "; }
+                    else    fout << id << " ";
+                }
                 fout << std::endl;
             }
             fout.close();
@@ -178,6 +233,7 @@ namespace deepwalk {
         unsigned long n_edge;
         std::vector<std::vector<T> > paths;
         std::mt19937 rng;
+        std::unordered_map<T, std::string> vidtoname;
 
         Graph(const Graph &other) {}
         Graph& operator=(const Graph &other) {}

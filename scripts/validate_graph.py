@@ -23,7 +23,7 @@ def validate(filename):
                     print '(invalid) at line %d' % n_line
                     return
             if 'edge' in filename:
-                if len(v_list) != 2:
+                if len(v_list) != 2 and len(v_list) != 3:
                     print '(invalid) at line %d' % n_line
                     return
         if len(v_set) == n_max and 0 not in v_set:

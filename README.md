@@ -1,11 +1,11 @@
 # deepwalk
-deepwalk reimplementation in c++
+weighted deepwalk implementation in c++.
 
 # Usage
-`python scripts/validate_graph.py data/sample.adjlist.txt`  
+`python scripts/validate_graph.py data/sample.edgelist.txt`  
 `make`  
-`./run_Main data/sample.adjlist.txt 34 1 25 40 random_walks.txt`    
+`./run_Main data/sample.edgelist.txt 34 1 25 40 random_walks.txt`    
 
 # Requirements
-`c++11`  
-`openMP`    
+`C++11`  
+`OpenMP`    
