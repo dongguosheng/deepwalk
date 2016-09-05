@@ -235,8 +235,8 @@ namespace deepwalk {
         std::mt19937 rng;
         std::unordered_map<T, std::string> vidtoname;
 
-        Graph(const Graph &other) {}
-        Graph& operator=(const Graph &other) {}
+        Graph(const Graph &other);
+        Graph& operator=(const Graph &other);
     };
 }
 
