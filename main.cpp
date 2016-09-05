@@ -10,7 +10,7 @@ int main(int argc, const char *argv[])
     using namespace std;
     // args parse
     if (argc < 2) {
-        cout << "./run_main graph_file idx_list_file num_vertex start_index(0/1) num_iter num_step output_file [idx_list_file]" << endl;
+        cout << "./walk graph_file num_vertex start_index(0/1) num_iter num_step output_file [idx_list_file]" << endl;
         return -1;
     }
     const char *filename = argv[1];
@@ -28,10 +28,13 @@ int main(int argc, const char *argv[])
     struct timeval st; gettimeofday( &st, NULL );
     g.GenRandomWalks(n_iter, n_step);
     struct timeval et; gettimeofday( &et, NULL );
-    printf("timeval: %ld ms\n", (et.tv_sec - st.tv_sec) * 1000 + (et.tv_usec - st.tv_usec)/1000);
+    printf("Walks Cost: %ld ms\n", (et.tv_sec - st.tv_sec) * 1000 + (et.tv_usec - st.tv_usec)/1000);
 
     const char *walks_file = argv[6];
+    gettimeofday( &st, NULL );
     g.SaveTxt(walks_file);
+    gettimeofday( &et, NULL );
+    printf("Save Cost: %ld ms\n", (et.tv_sec - st.tv_sec) * 1000 + (et.tv_usec - st.tv_usec)/1000);
     
     return 0;
 }

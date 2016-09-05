@@ -13,13 +13,13 @@ LIBS	=
 # Object Files
 OBJS	=	main.o 
 # Name of Executable
-TARGET	=	$(patsubst %.cpp, test_%, $(wildcard *.cpp))
+TARGET	=	test_walk
 # ---------------
 
 all:	$(TARGET)
 
-test_%: %.cpp Makefile
+test_walk: main.cpp Makefile
 	$(CC) $(CXXFLAGS) $(INCLUDES) $< -o $@ -L.. $(LDFLAGS)
 
 clean:
-	-rm -f *.o core.* run_*
+	-rm -f *.o core.* test_walk

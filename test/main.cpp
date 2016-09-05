@@ -8,11 +8,11 @@ int main()
     using namespace deepwalk;
     using namespace std;
     
-    // const char *filename = "./data/sample.adjlist.txt";
+    // const char *filename = "../data/sample.adjlist.txt";
     // unsigned int n_vertex = 34;
     // int start_idx = 1;
     
-    const char *filename = "./data/sample.edgelist.txt";
+    const char *filename = "../data/sample.edgelist.txt";
     unsigned int n_vertex = 6301;
     int start_idx = 0;
 
@@ -37,10 +37,7 @@ int main()
     cout << "----------------" << endl;
     int n_iter = 10;
     int n_step = 40;
-    clock_t start = clock();
     g.GenRandomWalks(n_iter, n_step);
-    clock_t end = clock();
-    cout << "Cost " << static_cast<float>(end - start) / CLOCKS_PER_SEC * 1000 << " ms." << endl;
     // show random walks
     
     const char *walks_file = "random_walks.txt";

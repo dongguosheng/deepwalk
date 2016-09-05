@@ -19,8 +19,8 @@ namespace deepwalk {
     template<typename T = unsigned int>
     struct Vertex {
         T id;
-        std::vector<std::pair<Vertex*, size_t> > adjacent_list;
-        std::vector<size_t> cum_table;
+        std::vector<std::pair<Vertex*, float> > adjacent_list;
+        std::vector<float> cum_table;
         Vertex(T _id) : id(_id) {}
         Vertex() {}
     };
@@ -73,7 +73,7 @@ namespace deepwalk {
                         assert(data[v_id] != NULL);
                         if (data[tmp_id] == NULL)    data[tmp_id] = new Vertex<T>(tmp_id);
                         // adj list with weight not supported yet.
-                        data[v_id]->adjacent_list.push_back(std::make_pair(data[tmp_id], 1));
+                        data[v_id]->adjacent_list.push_back(std::make_pair(data[tmp_id], 1.0f));
                         n_edge++;
                     }
                     cnt++;
@@ -95,7 +95,7 @@ namespace deepwalk {
                 std::istringstream ss(line);
                 T id_left, id_right;
                 ss >> id_left >> id_right;
-                size_t weight = 1;
+                float weight = 1.0f;
                 ss >> weight;
                 id_left -= start_idx;
                 id_right -= start_idx;
@@ -130,12 +130,12 @@ namespace deepwalk {
             return true;
         }
         inline void MakeCumTable() {
-            typedef std::pair<Vertex<T>*, size_t> edge_t;
+            typedef std::pair<Vertex<T>*, float> edge_t;
             for(auto v_ptr : data) {
                 // sort adjlist, higher weight with lower index
                 std::sort((v_ptr->adjacent_list).begin(), (v_ptr->adjacent_list).end(), [](const edge_t left, const edge_t right){ return left.second > right.second; });
                 (v_ptr->cum_table).reserve(v_ptr->adjacent_list.size());
-                size_t weight_sum = 0;
+                float weight_sum = 0;
                 for(auto edge : v_ptr->adjacent_list) {
                     weight_sum += edge.second;
                     (v_ptr->cum_table).push_back(weight_sum);
@@ -160,7 +160,7 @@ namespace deepwalk {
             Walk(ptr_v, n_step, path);
             return path;
         }
-        inline size_t BinarySearch(const std::vector<size_t> &cum_table, size_t rand_num) {
+        inline size_t BinarySearch(const std::vector<float> &cum_table, float rand_num) {
             size_t idx;
             size_t left = 0, right = cum_table.size() - 1;
             while(left <= right) {
@@ -175,12 +175,13 @@ namespace deepwalk {
         }
         inline void Walk(const Vertex<T>* ptr_v, int n_step, std::vector<T> &path) {
             path[0] = ptr_v->id;
-            size_t rand_num, idx;
+            float rand_num;
+            size_t idx;
             int i = 1;
             const Vertex<T>* ptr_now = ptr_v;
             while (i <= n_step) {
                 assert(ptr_now->adjacent_list.size() > 0 && ptr_now->adjacent_list.size() == ptr_now->cum_table.size());
-                std::uniform_int_distribution<size_t> ud(1, ptr_now->cum_table[(ptr_now->cum_table).size() - 1]);
+                std::uniform_real_distribution<float> ud(1, ptr_now->cum_table[(ptr_now->cum_table).size() - 1]);
                 rand_num = ud(rng);
                 idx = BinarySearch(ptr_now->cum_table, rand_num);
                 ptr_now = ptr_now->adjacent_list[idx].first;

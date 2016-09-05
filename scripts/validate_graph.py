@@ -10,14 +10,6 @@ def validate(filename):
         for line in fin:
             n_line += 1
             v_list = line.rstrip().split()
-            for vid in v_list:
-                vid = int(vid)
-                if vid < 0:
-                    print '(invalid) at line %d' % n_line
-                    return
-                v_set.add(vid)
-                if vid > n_max:
-                    n_max = vid
             if 'adj' in filename:
                 if len(v_list) < 2:
                     print '(invalid) at line %d' % n_line
@@ -26,6 +18,17 @@ def validate(filename):
                 if len(v_list) != 2 and len(v_list) != 3:
                     print '(invalid) at line %d' % n_line
                     return
+                if len(v_list) == 3:
+                    v_list = v_list[: 2]
+            for vid in v_list:
+                vid = int(vid)
+                if vid < 0:
+                    print '(invalid) at line %d' % n_line
+                    return
+                v_set.add(vid)
+                if vid > n_max:
+                    n_max = vid
+
         if len(v_set) == n_max and 0 not in v_set:
             print '(valid) start index: 1, total %d vertex.' % n_max
         elif len(v_set) == n_max + 1 and 0 in v_set:
