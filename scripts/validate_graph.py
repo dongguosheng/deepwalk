@@ -30,11 +30,12 @@ def validate(filename):
                     n_max = vid
 
         if len(v_set) == n_max and 0 not in v_set:
-            print '(valid) start index: 1, total %d vertex.' % n_max
+            print '(valid) start index: 1, max vertex idx: %d, total %d vertex.' % (n_max, len(v_set))
         elif len(v_set) == n_max + 1 and 0 in v_set:
-            print '(valid) start index: 0, total %d vertex.' % (n_max + 1)
+            print '(valid) start index: 0, max vertex idx: %d, total %d vertex.' % (n_max, len(v_set))
         else:
-            print '(invalid) lost vid, total %d vertex, n_max=%d' % (len(v_set), n_max)
+            print '(valid) start index: 0, max vertex idx: %d, total %d vertex.' % (n_max, len(v_set))
+            print 'vertex ids are not continuous, lost %d id.' % (n_max - len(v_set) if 0 in v_set else n_max - len(v_set) + 1)
           
 def main():
     if len(sys.argv) != 2:
