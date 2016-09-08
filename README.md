@@ -7,7 +7,7 @@ weighted deepwalk implementation in c++.
 # Usage
 1. `python scripts/validate_graph.py graph_file`    
 2. `./walk graph_file max_vertex_idx start_index(0/1) num_iter num_step output_file [idx_list_file]`    
-`graph_file`: something.edge or something.adj or something.edge.directed. Only left -> right is an edge in edge.directed file.
+`graph_file`: something.edge or something.adj or something.edge.directed. Only left -> right is an edge in edge.directed file.      
 `max_vertex_idx`: max graph node index. 
 `start_index`: graph node start index, 0 or 1.  
 `num_iter`: iteration number of all nodes.  
