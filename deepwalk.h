@@ -36,7 +36,10 @@ namespace deepwalk {
             n_edge = 0;
 
             if (strstr(filename, "adj") != NULL)    rs = LoadAdjList(filename, start_idx);
-            else if (strstr(filename, "edge") != NULL)    rs = LoadEdgeList(filename, start_idx);
+            else if (strstr(filename, "edge") != NULL) {
+                if (strstr(filename, "directed") != NULL)   rs = LoadEdgeList(filename, start_idx, true);
+                else                                        rs = LoadEdgeList(filename, start_idx);
+            }
             else {
                 std::cerr << "file format not supported yet." << std::endl;
             }
@@ -84,7 +87,7 @@ namespace deepwalk {
             std::cout << "Read adjlist complete. Total " << data.size() << " vertex, " << n_edge << " edges." << std::endl;
             return true;
         }
-        inline bool LoadEdgeList(const char *filename, int start_idx) {
+        inline bool LoadEdgeList(const char *filename, int start_idx, bool directed = false) {
             std::ifstream fin(filename);
             if (fin.fail()) {
                 std::cerr << filename << " read error." << std::endl;
@@ -104,7 +107,10 @@ namespace deepwalk {
                 if (data[id_left] == NULL)    data[id_left] = new Vertex<T>(id_left);
                 if (data[id_right] == NULL)    data[id_right] = new Vertex<T>(id_right);
                 data[id_left]->adjacent_list.push_back(std::make_pair(data[id_right], weight));
-                data[id_right]->adjacent_list.push_back(std::make_pair(data[id_left], weight));
+                if (!directed) {
+                    data[id_right]->adjacent_list.push_back(std::make_pair(data[id_left], weight));
+                    n_edge++;
+                }
                 n_edge++;
             }
             fin.close();
@@ -132,6 +138,7 @@ namespace deepwalk {
         inline void MakeCumTable() {
             typedef std::pair<Vertex<T>*, float> edge_t;
             for(auto v_ptr : data) {
+                if (v_ptr == NULL)  continue;   // for id not occured in graph file
                 // sort adjlist, higher weight with lower index
                 std::sort((v_ptr->adjacent_list).begin(), (v_ptr->adjacent_list).end(), [](const edge_t left, const edge_t right){ return left.second > right.second; });
                 (v_ptr->cum_table).reserve(v_ptr->adjacent_list.size());
@@ -149,6 +156,7 @@ namespace deepwalk {
                 int n_vertex = static_cast<int>(data.size());
                 # pragma omp parallel for num_threads(THREAD_NUM)
                 for (int j = 0; j < n_vertex; ++ j) {
+                    if (data[j] == NULL)    continue;   // for id not occured in graph file
                     if (data[j]->adjacent_list.empty())    continue;
                     paths[i*data.size() + j] = Walk(data[j], n_step);
                     // Walk(data[j], n_step, paths[i*data.size() + j]);
@@ -156,7 +164,7 @@ namespace deepwalk {
             }
         }
         inline std::vector<T> Walk(const Vertex<T>* ptr_v, int n_step) {
-            std::vector<T> path(n_step + 1, 0);
+            std::vector<T> path;
             Walk(ptr_v, n_step, path);
             return path;
         }
@@ -174,18 +182,21 @@ namespace deepwalk {
             return idx;
         }
         inline void Walk(const Vertex<T>* ptr_v, int n_step, std::vector<T> &path) {
-            path[0] = ptr_v->id;
+            // path[0] = ptr_v->id;
+            path.push_back(ptr_v->id);
             float rand_num;
             size_t idx;
             int i = 1;
             const Vertex<T>* ptr_now = ptr_v;
             while (i <= n_step) {
-                assert(ptr_now->adjacent_list.size() > 0 && ptr_now->adjacent_list.size() == ptr_now->cum_table.size());
+                assert(ptr_now->adjacent_list.size() == ptr_now->cum_table.size());
+                if (ptr_now->adjacent_list.empty()) return;
                 std::uniform_real_distribution<float> ud(1, ptr_now->cum_table[(ptr_now->cum_table).size() - 1]);
                 rand_num = ud(rng);
                 idx = BinarySearch(ptr_now->cum_table, rand_num);
                 ptr_now = ptr_now->adjacent_list[idx].first;
-                path[i] = ptr_now->id;
+                // path[i] = ptr_now->id;
+                path.push_back(ptr_now->id);
                 i++;
             }
         }
@@ -197,6 +208,7 @@ namespace deepwalk {
                 return false;
             }
             for (auto path : paths) {
+                if (path.empty())   continue;
                 for (auto id : path) {
                     if (vidtoname.size() > 0)   { assert(vidtoname.find(id) != vidtoname.end()); fout << vidtoname[id] << " "; }
                     else    fout << id << " ";
@@ -227,7 +239,8 @@ namespace deepwalk {
             return data[idx];
         }
         inline size_t GetDegree(const T idx) const {
-            return data[idx].size();
+            if (data[idx] == NULL)  std::cerr << idx << " not in graph." << std::endl;
+            else    return data[idx]->adjacent_list.size();
         }
     private:
         std::vector<Vertex<T>*> data;

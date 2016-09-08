@@ -10,12 +10,15 @@ int main(int argc, const char *argv[])
     using namespace std;
     // args parse
     if (argc < 2) {
-        cout << "./walk graph_file num_vertex start_index(0/1) num_iter num_step output_file [idx_list_file]" << endl;
+        cout << "./walk graph_file max_vertex_idx start_index(0/1) num_iter num_step output_file [idx_list_file]" << endl;
         return -1;
     }
     const char *filename = argv[1];
     unsigned int n_vertex = atoi(argv[2]);
     int start_idx = atoi(argv[3]);
+    if (start_idx == 0) {
+        n_vertex ++;
+    }
 
     Graph<> g(filename, n_vertex, start_idx);
     if (argc == 8) {
