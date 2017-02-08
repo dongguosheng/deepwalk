@@ -191,7 +191,7 @@ namespace deepwalk {
             while (i <= n_step) {
                 assert(ptr_now->adjacent_list.size() == ptr_now->cum_table.size());
                 if (ptr_now->adjacent_list.empty()) return;
-                std::uniform_real_distribution<float> ud(1, ptr_now->cum_table[(ptr_now->cum_table).size() - 1]);
+                std::uniform_real_distribution<float> ud(0.0f, ptr_now->cum_table[(ptr_now->cum_table).size() - 1]);
                 rand_num = ud(rng);
                 idx = BinarySearch(ptr_now->cum_table, rand_num);
                 ptr_now = ptr_now->adjacent_list[idx].first;
@@ -239,7 +239,7 @@ namespace deepwalk {
             return data[idx];
         }
         inline size_t GetDegree(const T idx) const {
-            if (data[idx] == NULL)  std::cerr << idx << " not in graph." << std::endl;
+            if (data[idx] == NULL)  return 0;
             else    return data[idx]->adjacent_list.size();
         }
     private:
